@@ -1,0 +1,187 @@
+@font-face {
+	font-family: "Chiron GoRound TC";
+	src: url("../fonts/ChironGoRoundTC-VariableFont_wght.ttf")
+		format("truetype");
+}
+
+body {
+	font-family: "Chiron GoRound TC", Arial, sans-serif;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background-color: #7393b3;
+	cursor: default;
+	user-select: none;
+	overflow: hidden;
+}
+
+main {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+}
+
+#title {
+	font-family:
+		"Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+	font-size: 4.8em;
+	color: #e42525;
+	text-shadow: 5px 5px #2c2c2c;
+}
+
+#play-button {
+	width: 150px;
+	height: 75px;
+	border-radius: 15px;
+	background-color: #eeee2e;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1.8em;
+	font-family: "Chiron GoRound TC", Arial, sans-serif;
+	font-weight: bold;
+    text-decoration: none;
+	color: #2c2c2c;
+	cursor: pointer;
+}
+
+#game-container, #ai-board-container, #player-board-container {
+	width: auto;
+	height: auto;
+	display: grid;
+	grid-template-columns: repeat(10, 60px);
+	gap: 4px;
+}
+
+.cell, .ai-cell, .player-cell {
+	width: 60px;
+	height: 60px;
+	background-color: #f0f0f0;
+	border: 0;
+	border-radius: 8px;
+	cursor: pointer;
+	justify-content: center;
+	align-items: center;
+}
+
+#info-panel {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: top;
+	margin: 0;
+}
+
+#control-hints {
+	width: 50%;
+	margin-top: 18px;
+	font-size: 1.4em;
+	font-family: "Chiron GoRound TC", Arial, sans-serif;
+	font-weight: 500;
+	color: #2c2c2c;
+	display: grid;
+	grid-template-columns: auto auto;
+	justify-content: left;
+}
+
+#control-hints img {
+	height: 36px;
+	margin: 5px 5px;
+}
+
+#control-hints span {
+	height: 36px;
+	margin: 5px 5px;
+	display: inline-flex;
+	align-items: center;
+	vertical-align: center;
+}
+
+#buttons {
+	width: 30%;
+	margin-top: 18px;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	vertical-align: top;
+	padding: 0;
+}
+
+#buttons * {
+	margin-left: auto;
+	font-family: "Chiron GoRound TC", Arial, sans-serif;
+	font-size: 1.4em;
+	font-weight: 500;
+	text-align: right;
+	padding: 6px 16px 8px;
+	border-radius: 8px;
+	color: #2c2c2c;
+	cursor: pointer;
+}
+
+#back-button {
+	background-color: #dedede;
+	display: none;
+}
+
+#back-button:hover {
+	background-color: #cecece;
+}
+
+#start-button {
+	background-color: #435eb4;
+	color: #f0f0f0;
+	border: 0px;
+	margin-top: 10px;
+	display: none;
+}
+
+#start-button:hover {
+	background-color: #3953a7;
+	color: #f0f0f0;
+}
+
+#turn-indicator {
+	font-family: "Chiron GoRound TC", Arial, sans-serif;
+	font-size: 2em;
+	color: #2c2c2c;
+	margin: 10;
+}
+
+#main-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: flex-start;
+	gap: 120px;
+}
+
+#ai-board-container, #player-board-container {
+	display: inline-grid;
+	width: auto;
+	vertical-align: top;
+	transition: all 1s ease;
+}
+
+#ai-board-container {
+	transform-origin: top right;
+}
+
+#player-board-container {
+	transform-origin: top left;
+}
+
+.player-cell {
+	cursor: default;
+}
+
+.marker {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+}

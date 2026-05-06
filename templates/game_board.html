@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Battleship</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css">
+</head>
+<body>
+<main>
+    <h2 id="turn-indicator" onclick="markAICell(0, 0, false)"></h2>
+    <div id="main-container">
+        <div id="ai-board-container">
+            <script>
+                // Dynamically create a 10x10 grid of cells for the AI's game board
+                const aiBoardContainer = document.getElementById('ai-board-container');
+                for (let row = 0; row < 10; row++) {
+                    for (let col = 0; col < 10; col++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('ai-cell');
+                        cell.id = `ai-cell-${row}-${col}`;
+                        cell.value = `${row}${col}`;
+                        aiBoardContainer.appendChild(cell);
+                    }
+                }
+            </script>
+        </div>
+        <div id="player-board-container">
+            <script>
+                // Dynamically create a 10x10 grid of cells for the player's game board
+                const playerBoardContainer = document.getElementById('player-board-container');
+                for (let row = 0; row < 10; row++) {
+                    for (let col = 0; col < 10; col++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('player-cell');
+                        cell.id = `player-cell-${row}-${col}`;
+                        cell.value = `${row}${col}`;
+                        playerBoardContainer.appendChild(cell);
+                    }
+                }
+            </script>
+        </div>
+    </div>
+</main>
+<script>
+
+// obtain game variables from Flask using Jinja templating
+/*
+const aiBoard = {{ ai_board | tojson }};
+const playerBoard = {{ player_board | tojson }};
+const shipPlacements = {{ ship_placements | tojson }};
+*/
+
+const aiBoard = [
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+];
+
+const playerBoard = [
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+];
+
+const shipPlacements = [
+    {
+        positions: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]], 
+        length: 5, 
+        colour: "#d8a7f6"
+    },
+    {
+        positions: [[2, 2], [3, 2], [4, 2], [5, 2]], 
+        length: 4, 
+        colour: "#ff9f50"
+    },
+    {
+        positions: [[7, 5], [7, 6], [7, 7]], 
+        length: 3, 
+        colour: "#a4ff90"
+    },
+    {
+        positions: [[9, 0], [9, 1], [9, 2]], 
+        length: 3, 
+        colour: "#ffff60"
+    },
+    {
+        positions: [[4, 7], [5, 7]], 
+        length: 2, 
+        colour: "#ff9dce"
+    }
+];
+
+
+let playerTurn = true;
+let allowPlayerInput = true; 
+
+const turnIndicator = document.getElementById('turn-indicator');
+const aiCells = document.querySelectorAll('.ai-cell');
+const playerCells = document.querySelectorAll('.player-cell');
+
+// Function to show player ships on player board
+function showPlayerShips() {
+    shipPlacements.forEach(ship => {
+        ship.positions.forEach(pos => {
+            const cell = document.getElementById(`player-cell-${pos[0]}-${pos[1]}`);
+            cell.style.backgroundColor = ship.colour;
+        });
+    });
+}
+showPlayerShips(); // Initial call to display player ships
+
+// Function to grey out board depending on whose turn it is
+function updateBoardInteractivity() {
+    if (playerTurn) {
+        // update turn indicator
+        turnIndicator.textContent = "Your Turn";
+
+        // grey out player board
+        playerBoardContainer.style.opacity = '0.6';
+        playerBoardContainer.style.transform = 'scale(0.6)';
+
+        aiBoardContainer.style.opacity = '1';
+        aiBoardContainer.style.transform = 'scale(1)';
+        
+    } 
+    else {
+        // update turn indicator
+        turnIndicator.textContent = "AI's Turn";
+        
+        // grey out and shrink AI board
+        aiBoardContainer.style.opacity = '0.6';
+        aiBoardContainer.style.transform = 'scale(0.6)';
+
+        playerBoardContainer.style.opacity = '1';
+        playerBoardContainer.style.transform = 'scale(1)';
+    }
+}
+updateBoardInteractivity(); // Initial call to set the correct interactivity on page load
+
+// Function to add overlay to cells
+function addHoverOverlay(row, col) {
+    if (!allowPlayerInput) return;
+    
+    for (let i = 0; i < 10; i++) {
+        // add grey overlay to row and column of hovered cell
+        const rowCell = document.getElementById(`ai-cell-${row}-${i}`);
+        const colCell = document.getElementById(`ai-cell-${i}-${col}`);
+        if (rowCell) rowCell.style.boxShadow = 'inset 0 0 0 100px rgba(0, 0, 0, 0.25)';
+        if (colCell) colCell.style.boxShadow = 'inset 0 0 0 100px rgba(0, 0, 0, 0.25)';
+
+        // add red overlay to hovered cell
+        const hoveredCell = document.getElementById(`ai-cell-${row}-${col}`);
+        if (hoveredCell) hoveredCell.style.boxShadow = 'inset 0 0 0 100px rgba(255, 0, 0, 0.6)';
+    }
+}
+
+// Function to remove overlay from all cells
+function removeHoverOverlay() {
+    for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+            const cell = document.getElementById(`ai-cell-${i}-${j}`);
+            if (cell) cell.style.boxShadow = '';
+        }
+    }
+}
+
+// Function to add hit or miss marker on AI board
+function markAICell(row, col, hit) {
+    const cell = document.getElementById(`ai-cell-${row}-${col}`);
+
+    const marker = document.createElement('div');
+    marker.classList.add('marker');
+    marker.style.backgroundColor = hit ? '#ff4444' : '#aaaaaf';
+    
+    // add marker to cell
+    cell.textContent = '';
+    cell.appendChild(marker);
+}
+
+// Function to toggle turns
+function toggleTurn() {
+    playerTurn = !playerTurn;
+    updateBoardInteractivity();
+}
+
+// Function to toggle player input
+function togglePlayerInput() {
+    allowPlayerInput = !allowPlayerInput;
+
+    // Change cursor style based on whether player input is allowed
+    aiCells.forEach(cell => {
+        cell.style.cursor = allowPlayerInput ? 'pointer' : 'default';
+    });
+}
+
+// Event listener to add red overlay to cell on hover
+aiCells.forEach(cell => {
+    cell.addEventListener('mouseover', () => {
+        removeHoverOverlay()
+        const [_, __, row, col] = cell.id.split('-').map(Number);
+        addHoverOverlay(row, col);
+    });
+});
+
+aiBoardContainer.addEventListener('mouseleave', () => {
+    removeHoverOverlay();
+});
+
+// Event listener to handle player attacks on click
+aiCells.forEach(cell => {
+    cell.addEventListener('click', () => {
+        if (!playerTurn || !allowPlayerInput) return;
+
+        togglePlayerInput();
+        removeHoverOverlay();
+
+        const [_, __, row, col] = cell.id.split('-').map(Number);
+
+        // Send attack coordinates to Flask backend via AJAX
+        fetch('/play/player-move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({"row": row, "col": col})
+        })
+
+        // Receive response from Flask backend and update game state accordingly
+        .then(response => response.json())
+        .then(data => {
+
+            // Update AI board based on response
+            markAICell(row, col, data.hit);
+            
+        })
+    });
+});
+
+</script>
+</body>
+</html>
