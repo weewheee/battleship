@@ -45,12 +45,11 @@
 <script>
 
 // obtain game variables from Flask using Jinja templating
-/*
 const aiBoard = {{ ai_board | tojson }};
 const playerBoard = {{ player_board | tojson }};
 const shipPlacements = {{ ship_placements | tojson }};
-*/
 
+/*
 const aiBoard = [
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -104,7 +103,7 @@ const shipPlacements = [
         colour: "#ff9dce"
     }
 ];
-
+*/
 
 let playerTurn = true;
 let allowPlayerInput = true; 
@@ -185,11 +184,19 @@ function markAICell(row, col, hit) {
 
     const marker = document.createElement('div');
     marker.classList.add('marker');
-    marker.style.backgroundColor = hit ? '#ff4444' : '#aaaaaf';
+    marker.style.backgroundColor = hit ? '#ff4444' : '#99999f';
+
+    // diasble player input while marker animation is playing
+    togglePlayerInput();
     
     // add marker to cell
     cell.textContent = '';
     cell.appendChild(marker);
+
+    // wait for marker animation to finish before enabling player input again
+    setTimeout(() => {
+        togglePlayerInput();
+    }, 300);
 }
 
 // Function to toggle turns
@@ -207,6 +214,19 @@ function togglePlayerInput() {
         cell.style.cursor = allowPlayerInput ? 'pointer' : 'default';
     });
 }
+
+// Function to update sunk cells on ai board
+function updateSunkAICells(board) {
+    for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+            if (board[i][j] === 'S') {
+                const cell = document.getElementById(`ai-cell-${i}-${j}`);
+                if (cell) cell.style.backgroundColor = '#76767a';
+            }
+        }
+    }
+}
+
 
 // Event listener to add red overlay to cell on hover
 aiCells.forEach(cell => {
@@ -246,7 +266,23 @@ aiCells.forEach(cell => {
 
             // Update AI board based on response
             markAICell(row, col, data.hit);
-            
+
+            // if miss, toggle turn to AI
+            if (!data.hit) {
+                toggleTurn();
+                return
+            }
+
+            // if hit, check if game is over
+            if (data.game_over) {
+                // TODO: Handle game over logic
+            }
+
+            // Update sunk cells on AI board
+            updateSunkAICells(data.ai_board);
+
+            // let player attack again if they hit a ship
+            togglePlayerInput();
         })
     });
 });
