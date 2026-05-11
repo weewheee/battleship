@@ -3,7 +3,7 @@ import flask
 import json
 
 # set ships in known positions for testing purposes
-testing_ship_positions = [
+TESTING_SHIP_POSITIONS = [
     [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)], 
     [(2, 0), (2, 1), (2, 2), (2, 3)], 
     [(4, 0), (4, 1), (4, 2)], 
@@ -55,7 +55,7 @@ def play_redirect():
     set_ships = False
 
     # Set ships on player and ai boards
-    ai_board.set_ships(*testing_ship_positions)
+    ai_board.set_ships(*TESTING_SHIP_POSITIONS)
 
     player_ship_positions = []
     for ship in ship_positions:

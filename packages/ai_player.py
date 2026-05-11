@@ -47,7 +47,7 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_he
             #*
             #* i.e.
             #* [ ,  ,  , ]
-            #* [ , X, X, ]  --->    Horizontal search will be prioritised since there are multiple hits in a horizontal line
+            #* [ , X, X, ]  -->    Horizontal search will be prioritised since there are multiple hits in a horizontal line
             #* [ ,  ,  , ]
             #*
             #* priority will be determined by number of hits for a possible ship placement by the following values:
@@ -59,7 +59,7 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_he
             #*    3  |     20
             #*    4  |     30
 
-            priority_values = [0, 1, 10, 20, 30]
+            PRIORITY_VALUES = [0, 1, 10, 20, 30]
                       
             # check all possible horizontal placements if it coincides with hit locations
             for i in range(10):
@@ -69,7 +69,7 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_he
                     if set(board[i, j:j + ship_size].ravel()) != {' ', 'X'}:
                         continue
 
-                    heat_map[i, j:j + ship_size][board[i, j:j + ship_size] == ' '] += priority_values[np.count_nonzero(board[i, j:j + ship_size] == 'X')]
+                    heat_map[i, j:j + ship_size][board[i, j:j + ship_size] == ' '] += PRIORITY_VALUES[np.count_nonzero(board[i, j:j + ship_size] == 'X')]
 
             # check all possible vertical placements if it coincides with hit locations
             for i in range(10 - ship_size + 1):
@@ -79,7 +79,7 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_he
                     if set(board[i:i + ship_size, j].ravel()) != {' ', 'X'}:
                         continue
 
-                    heat_map[i:i + ship_size, j][board[i:i + ship_size, j] == ' '] += priority_values[np.count_nonzero(board[i:i + ship_size, j] == 'X')]
+                    heat_map[i:i + ship_size, j][board[i:i + ship_size, j] == ' '] += PRIORITY_VALUES[np.count_nonzero(board[i:i + ship_size, j] == 'X')]
                     
     # return position with highest heat map value
     if return_heat_map:
