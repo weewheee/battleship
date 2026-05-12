@@ -61,7 +61,9 @@ class Board:
                     all_positions.update(ship.position_unhit)
                     break
 
-    def receive_attack(self, position: tuple[int, int]) -> bool:
+    def receive_attack(self, position: tuple[int, int]) -> tuple[bool, list[tuple[int, int]]]: 
+        # returns (hit/miss, positions of sunk ship if sunk)
+        
         for ship in self.ships: 
             if ship.register_hit(position):
                 self.grid[position[0], position[1]] = 'X'  # Mark hit
@@ -70,7 +72,11 @@ class Board:
                 if ship.sunk:
                     for i, j in ship.position_hit:
                         self.grid[i, j] = 'S'  # Mark sunk
-                return True
+
+                    # return True and the positions of the sunk ship
+                    return True, list(ship.position_hit)
+                        
+                return True, []  # Return True for hit but no sunk
             
         self.grid[position[0], position[1]] = 'O'  # Mark miss
-        return
+        return False, []  # Return False for miss

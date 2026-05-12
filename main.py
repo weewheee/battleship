@@ -71,17 +71,20 @@ def player_move():
     row, col = flask.request.json['row'], flask.request.json['col']
 
     # Register the player's move on the AI's board and return whether it was a hit or miss
-    hit = ai_board.receive_attack((row, col))
+    hit, sink_positions = ai_board.receive_attack((row, col))
     ai_board.turns += 1
+
+    # Change tuples in sink_positions to lists for JSON serialization
+    sink_positions = [list(pos) for pos in sink_positions]
+    sink_positions.sort()
 
     # Return game state as JSON to html
     response  = {
         'hit': hit,
-        'ai_board': ai_board.grid.tolist(),
+        'sinkPositions': sink_positions,
+        'aiBoard': ai_board.grid.tolist(),
         'win': all(ship.sunk for ship in ai_board.ships)
     }
-
-    print(ai_board.grid)
     return flask.jsonify(response)
 
 def main():

@@ -179,7 +179,7 @@ function removeHoverOverlay() {
 }
 
 // Function to add hit or miss marker on AI board
-function markAICell(row, col, hit) {
+async function markAICell(row, col, hit) {
     const cell = document.getElementById(`ai-cell-${row}-${col}`);
 
     const marker = document.createElement('div');
@@ -193,10 +193,8 @@ function markAICell(row, col, hit) {
     cell.textContent = '';
     cell.appendChild(marker);
 
-    // wait for marker animation to finish before enabling player input again
-    setTimeout(() => {
-        togglePlayerInput();
-    }, 300);
+    // wait for marker animation to finish
+    await new Promise(resolve => setTimeout(resolve, 300));
 }
 
 // Function to toggle turns
@@ -216,15 +214,21 @@ function togglePlayerInput() {
 }
 
 // Function to update sunk cells on ai board
-function updateSunkAICells(board) {
-    for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-            if (board[i][j] === 'S') {
-                const cell = document.getElementById(`ai-cell-${i}-${j}`);
-                if (cell) cell.style.backgroundColor = '#76767a';
-            }
-        }
+async function updateSunkAICells(sunkPositions) {
+    for (const pos of sunkPositions) {
+        const cell = document.getElementById(`ai-cell-${pos[0]}-${pos[1]}`);
+
+        // change colour of hit marker to dark red with pulse animation
+        const marker = cell.querySelector('.marker');
+        marker.style.backgroundColor = '#aa4444';
+        marker.style.animation = 'pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+
+        // short delay for wave effect
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
+
+    // wait for animation to fully finish
+    await new Promise(resolve => setTimeout(resolve, 500));
 }
 
 
@@ -243,47 +247,45 @@ aiBoardContainer.addEventListener('mouseleave', () => {
 
 // Event listener to handle player attacks on click
 aiCells.forEach(cell => {
-    cell.addEventListener('click', () => {
+    cell.addEventListener('click', async () => {
         if (!playerTurn || !allowPlayerInput) return;
 
-        togglePlayerInput();
         removeHoverOverlay();
 
         const [_, __, row, col] = cell.id.split('-').map(Number);
 
-        // Send attack coordinates to Flask backend via AJAX
-        fetch('/play/player-move', {
+        // Send attack coordinates to Flask backend via AJAX and await response
+        const response = await fetch('/play/player-move', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({"row": row, "col": col})
-        })
+        });
+        const data = await response.json();
 
-        // Receive response from Flask backend and update game state accordingly
-        .then(response => response.json())
-        .then(data => {
+        // Update AI board based on response
+        await markAICell(row, col, data.hit);
 
-            // Update AI board based on response
-            markAICell(row, col, data.hit);
-
-            // if miss, toggle turn to AI
-            if (!data.hit) {
-                toggleTurn();
-                return
-            }
-
-            // if hit, check if game is over
-            if (data.game_over) {
-                // TODO: Handle game over logic
-            }
-
-            // Update sunk cells on AI board
-            updateSunkAICells(data.ai_board);
-
-            // let player attack again if they hit a ship
-            togglePlayerInput();
-        })
+        // if miss, toggle turn to AI
+        if (!data.hit) {
+            toggleTurn();
+            return
+        }
+        
+        // Update sunk cells on AI board
+        if (data.sinkPositions.length > 0) {
+            await updateSunkAICells(data.sinkPositions);
+        }
+        
+        // check if game is over
+        if (data.game_over) {
+            // TODO: Handle game over logic
+        }
+        
+        // Allow player to make another move if they hit a ship
+        togglePlayerInput();
+        
     });
 });
 
