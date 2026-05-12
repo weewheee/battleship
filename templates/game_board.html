@@ -153,7 +153,10 @@ updateBoardInteractivity(); // Initial call to set the correct interactivity on 
 
 // Function to add overlay to cells
 function addHoverOverlay(row, col) {
+    
+    const cell = document.getElementById(`ai-cell-${row}-${col}`);
     if (!allowPlayerInput) return;
+    if (cell.querySelector('.marker')) return;
     
     for (let i = 0; i < 10; i++) {
         // add grey overlay to row and column of hovered cell
@@ -285,8 +288,7 @@ aiCells.forEach(cell => {
         
         // Allow player to make another move if they hit a ship
         togglePlayerInput();
-        
-    });
+    }, { once: true }); // Use { once: true } to ensure the event listener is only triggered once per cell
 });
 
 </script>

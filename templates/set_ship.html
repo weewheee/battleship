@@ -8,7 +8,7 @@
 </head>
 <body>
 <main>
-    <form action="/play/redirect" method="get">
+    <div>
         <div id="game-container">
             <script>
                 // Dynamically create a 10x10 grid of cells for the game board
@@ -33,10 +33,10 @@
             </div>
             <div id="buttons">
                 <div id="back-button">Back</div>
-                <button id="start-button" type="submit">Start Game</button>
+                <div id="start-button" type="submit">Start Game</div>
             </div>
         </div>
-    </form>
+    </div>
 </main>
 
 <script>
@@ -93,7 +93,10 @@ function isValidPlacement(row, col) {
 
         // Check for overlap with existing ships
         for (const ship of placedShips) {
-            if (ship.positions.includes([checkRow, checkCol])) return false;
+            
+            if (ship.positions.some(pos => pos[0] === checkRow && pos[1] === checkCol)) {
+                return false;
+            }
         }
     }
     return true;
@@ -209,6 +212,21 @@ backButton.addEventListener('click', () => {
     if (currentShip === 0) {
         backButton.style.display = 'none';
     }
+});
+
+// Event listener for start button to submit ship placements and start the game
+startButton.addEventListener('click', async () => {
+    // Send ship placements to server
+    await fetch('/play/set-ships', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ship_placements: placedShips })
+    });
+
+    // Reload current page to start game
+    window.location.reload();
 });
 </script>
 </body>

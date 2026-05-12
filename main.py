@@ -28,8 +28,13 @@ app = flask.Flask(__name__)
 
 @app.route('/')
 def index():
-    reset()
     return flask.render_template('index.html')
+
+# Redirect page to ensure that the game state is reset when the player clicks the "Play" button on the index page
+@app.route("/redirect")
+def redirect():
+    reset()
+    return flask.redirect('/play')
 
 @app.route('/play')
 def play():
@@ -46,25 +51,27 @@ def play():
     }
     return flask.render_template('game_board.html', **context)
 
-@app.route('/play/redirect', methods=['GET'])
-def play_redirect():
+@app.route('/play/set-ships', methods=['POST'])
+def play_set_ships():
     global ship_positions, set_ships
 
-    # Get ship placements from the query parameters and store them in the global variable
-    ship_positions = json.loads(flask.request.args.get('ship_placements'))
+    # Get ship placements from the request body and store them in the global variable
+    ship_positions = flask.request.json['ship_placements']
     set_ships = False
 
     # Set ships on player and ai boards
     ai_board.set_ships(*TESTING_SHIP_POSITIONS)
 
     player_ship_positions = []
+    # Convert positions in list from list to tuple
     for ship in ship_positions:
         positions = [tuple(pos) for pos in ship['positions']]
         player_ship_positions.append(positions)
+
     player_board.set_ships(*player_ship_positions)
 
-    # Redirect to the /play route to start the game
-    return flask.redirect('/play')
+    print(set_ships)
+    return
 
 @app.route('/play/player-move', methods=['POST'])
 def player_move():
