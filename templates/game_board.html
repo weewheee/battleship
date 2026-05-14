@@ -8,7 +8,7 @@
 </head>
 <body>
 <main>
-    <h2 id="turn-indicator" onclick="markAICell(0, 0, false)"></h2>
+    <h2 id="turn-indicator"></h2>
     <div id="main-container">
         <div id="ai-board-container">
             <script>
@@ -124,7 +124,7 @@ function showPlayerShips() {
 showPlayerShips(); // Initial call to display player ships
 
 // Function to grey out board depending on whose turn it is
-function updateBoardInteractivity() {
+async function updateBoardInteractivity() {
     if (playerTurn) {
         // update turn indicator
         turnIndicator.textContent = "Your Turn";
@@ -148,6 +148,10 @@ function updateBoardInteractivity() {
         playerBoardContainer.style.opacity = '1';
         playerBoardContainer.style.transform = 'scale(1)';
     }
+
+    // Set time delay for animation to finish 
+    await new Promise(resolve => setTimeout(resolve, 800));
+
 }
 updateBoardInteractivity(); // Initial call to set the correct interactivity on page load
 
@@ -181,16 +185,14 @@ function removeHoverOverlay() {
     }
 }
 
-// Function to add hit or miss marker on AI board
-async function markAICell(row, col, hit) {
-    const cell = document.getElementById(`ai-cell-${row}-${col}`);
+// Function to add hit or miss marker on AI/Player board
+async function markCell(board, row, col, hit) {
+    
+    const cell = document.getElementById(`${board}-cell-${row}-${col}`);
 
     const marker = document.createElement('div');
     marker.classList.add('marker');
     marker.style.backgroundColor = hit ? '#ff4444' : '#99999f';
-
-    // diasble player input while marker animation is playing
-    togglePlayerInput();
     
     // add marker to cell
     cell.textContent = '';
@@ -201,9 +203,9 @@ async function markAICell(row, col, hit) {
 }
 
 // Function to toggle turns
-function toggleTurn() {
+async function toggleTurn() {
     playerTurn = !playerTurn;
-    updateBoardInteractivity();
+    await updateBoardInteractivity();
 }
 
 // Function to toggle player input
@@ -217,9 +219,9 @@ function togglePlayerInput() {
 }
 
 // Function to update sunk cells on ai board
-async function updateSunkAICells(sunkPositions) {
+async function updateSunkCells(board, sunkPositions) {
     for (const pos of sunkPositions) {
-        const cell = document.getElementById(`ai-cell-${pos[0]}-${pos[1]}`);
+        const cell = document.getElementById(`${board}-cell-${pos[0]}-${pos[1]}`);  //! figure put why this returns null
 
         // change colour of hit marker to dark red with pulse animation
         const marker = cell.querySelector('.marker');
@@ -232,6 +234,45 @@ async function updateSunkAICells(sunkPositions) {
 
     // wait for animation to fully finish
     await new Promise(resolve => setTimeout(resolve, 500));
+}
+
+// Function for AI to make move
+async function aiMakeMove() {
+    while (true) {
+        // Send request to Flask backend to get AI move coordinates
+        const response = await fetch('/play/ai-move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+
+        // Update player board based on AI move
+        await markCell('player', data.row, data.col, data.hit);
+
+        // Update sunk cells on player board
+        if (data.sinkPositions.length > 0) {
+            await updateSunkCells('player', data.sinkPositions);
+        }
+
+        // check if game is over
+        if (data.win) {
+            //TODO: Handle game over logic
+            alert("Game Over! AI Wins!");
+            break;
+        }
+
+        // Toggle turn back to player if AI missed
+        if (!data.hit) {
+            await toggleTurn();
+            togglePlayerInput();
+            break;
+        }
+        
+        // if AI hit a ship, allow it to make another move after short delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 }
 
 
@@ -254,6 +295,7 @@ aiCells.forEach(cell => {
         if (!playerTurn || !allowPlayerInput) return;
 
         removeHoverOverlay();
+        togglePlayerInput();
 
         const [_, __, row, col] = cell.id.split('-').map(Number);
 
@@ -268,26 +310,29 @@ aiCells.forEach(cell => {
         const data = await response.json();
 
         // Update AI board based on response
-        await markAICell(row, col, data.hit);
+        await markCell('ai', row, col, data.hit);
 
         // if miss, toggle turn to AI
         if (!data.hit) {
-            toggleTurn();
+            await toggleTurn();
+            await aiMakeMove();
             return
         }
         
         // Update sunk cells on AI board
         if (data.sinkPositions.length > 0) {
-            await updateSunkAICells(data.sinkPositions);
+            console.log(data.sinkPositions);
+            await updateSunkCells('ai', data.sinkPositions);
         }
         
         // check if game is over
-        if (data.game_over) {
+        if (data.win) {
             // TODO: Handle game over logic
+            alert("Game Over! You Win!");
         }
         
         // Allow player to make another move if they hit a ship
-        togglePlayerInput();
+        await togglePlayerInput();
     }, { once: true }); // Use { once: true } to ensure the event listener is only triggered once per cell
 });
 

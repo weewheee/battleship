@@ -71,7 +71,7 @@ def play_set_ships():
     player_board.set_ships(*player_ship_positions)
 
     print(set_ships)
-    return
+    return flask.jsonify({'success': True})
 
 @app.route('/play/player-move', methods=['POST'])
 def player_move():
@@ -91,6 +91,29 @@ def player_move():
         'sinkPositions': sink_positions,
         'aiBoard': ai_board.grid.tolist(),
         'win': all(ship.sunk for ship in ai_board.ships)
+    }
+    return flask.jsonify(response)
+
+@app.route('/play/ai-move', methods=['POST'])
+def ai_move():
+    # AI makes a move on the player's board and return whether it was a hit or miss
+    next_move = ai.generate_next_move(player_board.grid, [ship.sunk for ship in player_board.ships])
+    print(next_move)
+    hit, sink_positions = player_board.receive_attack(next_move)
+    player_board.turns += 1
+
+    # Change tuples in sink_positions to lists for JSON serialization
+    sink_positions = [list(pos) for pos in sink_positions]
+    sink_positions.sort()
+
+    # Return game state as JSON to html
+    response  = {
+        'row': next_move[0],
+        'col': next_move[1],
+        'hit': hit,
+        'sinkPositions': sink_positions,
+        'playerBoard': player_board.grid.tolist(),
+        'win': all(ship.sunk for ship in player_board.ships)
     }
     return flask.jsonify(response)
 

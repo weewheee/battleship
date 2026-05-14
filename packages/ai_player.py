@@ -1,6 +1,6 @@
 import numpy as np
 
-def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_heat_map: bool = False) -> tuple[int, int, any]:
+def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool]) -> tuple[int, int]:
 
     #* bool test_mode is used to determine whether to return heat map to display using decorator
 
@@ -80,9 +80,5 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool], return_he
                         continue
 
                     heat_map[i:i + ship_size, j][board[i:i + ship_size, j] == ' '] += PRIORITY_VALUES[np.count_nonzero(board[i:i + ship_size, j] == 'X')]
-                    
-    # return position with highest heat map value
-    if return_heat_map:
-        return np.unravel_index(heat_map.argmax(), heat_map.shape) + (heat_map, )
     
-    return np.unravel_index(heat_map.argmax(), heat_map.shape)
+    return tuple([int(i) for i in np.unravel_index(heat_map.argmax(), heat_map.shape)])

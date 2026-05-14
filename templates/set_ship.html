@@ -217,7 +217,7 @@ backButton.addEventListener('click', () => {
 // Event listener for start button to submit ship placements and start the game
 startButton.addEventListener('click', async () => {
     // Send ship placements to server
-    await fetch('/play/set-ships', {
+    const response = await fetch('/play/set-ships', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -225,8 +225,11 @@ startButton.addEventListener('click', async () => {
         body: JSON.stringify({ ship_placements: placedShips })
     });
 
-    // Reload current page to start game
-    window.location.reload();
+    const result = await response.json();
+    if (result.success) {
+        // Reload current page to start game
+        window.location.reload();
+    }
 });
 </script>
 </body>
