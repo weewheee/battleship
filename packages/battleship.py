@@ -31,7 +31,7 @@ class Board:
         self.grid: np.ndarray = np.array([[' '] * 10 for _ in range(10)])
         self.ships: list[Ship] = [Ship(size) for size in [5, 4, 3, 3, 2]]
 
-        self.turns: int = 0
+        self.moves: int = 0
 
     def set_ships(self, *positions: list[list[tuple[int, int]]]) -> None:
         # If positions are provided, set ships to the positions

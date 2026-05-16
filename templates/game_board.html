@@ -45,65 +45,7 @@
 <script>
 
 // obtain game variables from Flask using Jinja templating
-const aiBoard = {{ ai_board | tojson }};
-const playerBoard = {{ player_board | tojson }};
 const shipPlacements = {{ ship_placements | tojson }};
-
-/*
-const aiBoard = [
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
-];
-
-const playerBoard = [
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
-];
-
-const shipPlacements = [
-    {
-        positions: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]], 
-        length: 5, 
-        colour: "#d8a7f6"
-    },
-    {
-        positions: [[2, 2], [3, 2], [4, 2], [5, 2]], 
-        length: 4, 
-        colour: "#ff9f50"
-    },
-    {
-        positions: [[7, 5], [7, 6], [7, 7]], 
-        length: 3, 
-        colour: "#a4ff90"
-    },
-    {
-        positions: [[9, 0], [9, 1], [9, 2]], 
-        length: 3, 
-        colour: "#ffff60"
-    },
-    {
-        positions: [[4, 7], [5, 7]], 
-        length: 2, 
-        colour: "#ff9dce"
-    }
-];
-*/
 
 let playerTurn = true;
 let allowPlayerInput = true; 
@@ -256,6 +198,9 @@ async function aiMakeMove() {
             await updateSunkCells('player', data.sinkPositions);
         }
 
+        // Short delay before proceeding with next move or toggling back to player turn
+        await new Promise(resolve => setTimeout(resolve, 800));
+
         // check if game is over
         if (data.win) {
             //TODO: Handle game over logic
@@ -269,9 +214,6 @@ async function aiMakeMove() {
             togglePlayerInput();
             break;
         }
-        
-        // if AI hit a ship, allow it to make another move after short delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
 
