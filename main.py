@@ -11,7 +11,6 @@ TESTING_SHIP_POSITIONS = [
     [(6, 0), (6, 1), (6, 2)], 
     [(8, 0), (8, 1)] 
 ]
-
 ai_board = Board()
 player_board = Board()
 
@@ -62,10 +61,7 @@ def play_set_ships():
     set_ships = False
 
     # Set ships on player and ai boards
-    if TESTING:
-        ai_board.set_ships(*TESTING_SHIP_POSITIONS)
-    else:
-        ai_board.set_ships()
+    ai_board.set_ships(*TESTING_SHIP_POSITIONS)
 
     player_ship_positions = []
     # Convert positions in list from list to tuple
@@ -93,6 +89,7 @@ def player_move():
     # Return game state as JSON to html
     response  = {
         'hit': hit,
+        'sinkPositions': sink_positions,
         'win': all(ship.sunk for ship in ai_board.ships)
     }
     return flask.jsonify(response)
@@ -114,6 +111,7 @@ def ai_move():
         'row': next_move[0],
         'col': next_move[1],
         'hit': hit,
+        'sinkPositions': sink_positions,
         'win': all(ship.sunk for ship in player_board.ships)
     }
     return flask.jsonify(response)
