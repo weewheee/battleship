@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool]) -> tuple[int, int]:
 
@@ -81,4 +82,4 @@ def generate_next_move(board: np.ndarray, ship_sunk_state: list[bool]) -> tuple[
 
                     heat_map[i:i + ship_size, j][board[i:i + ship_size, j] == ' '] += PRIORITY_VALUES[np.count_nonzero(board[i:i + ship_size, j] == 'X')]
     
-    return tuple([int(i) for i in np.unravel_index(heat_map.argmax(), heat_map.shape)])
+    return max([(i, j) for i in range(10) for j in range(10)], key=lambda x: (heat_map[x[0], x[1]], random.random()))

@@ -45,14 +45,51 @@
 <script>
 
 // obtain game variables from Flask using Jinja templating
+const aiBoard = {{ ai_board | tojson }};
+const playerBoard = {{ player_board | tojson }};
 const shipPlacements = {{ ship_placements | tojson }};
 
 let playerTurn = true;
 let allowPlayerInput = true; 
 
+const hitMarkerColour = '#ff4444';
+const missMarkerColour = '#99999f';
+const sinkMarkerColour = '#aa4444';
+
 const turnIndicator = document.getElementById('turn-indicator');
 const aiCells = document.querySelectorAll('.ai-cell');
 const playerCells = document.querySelectorAll('.player-cell');
+
+// Initial setup to reload markers on player and AI boards
+function reloadMarkers(player, board) {
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 10; col++) {
+            const cell = document.getElementById(`${player}-cell-${row}-${col}`);
+
+            // helper function to draw marker
+            function drawMarker(cell, colour) {
+                const marker = document.createElement('div');
+                marker.classList.add('marker');
+                marker.style.backgroundColor = colour;
+                cell.appendChild(marker);
+            }
+
+            if (board[row][col] === 'O') {
+                drawMarker(cell, missMarkerColour);
+            }
+            else if (board[row][col] === 'X') {
+                drawMarker(cell, hitMarkerColour);
+            }
+            else if (board[row][col] === 'S') {
+                drawMarker(cell, sinkMarkerColour);
+            }
+        }
+    }
+}
+
+// Call reloadMarkers for both boards on page load, in case player reloads the page mid-game
+reloadMarkers('player', playerBoard);
+reloadMarkers('ai', aiBoard);
 
 // Function to show player ships on player board
 function showPlayerShips() {
@@ -134,7 +171,7 @@ async function markCell(board, row, col, hit) {
 
     const marker = document.createElement('div');
     marker.classList.add('marker');
-    marker.style.backgroundColor = hit ? '#ff4444' : '#99999f';
+    marker.style.backgroundColor = hit ? hitMarkerColour : missMarkerColour;
     
     // add marker to cell
     cell.textContent = '';
@@ -167,7 +204,7 @@ async function updateSunkCells(board, sunkPositions) {
 
         // change colour of hit marker to dark red with pulse animation
         const marker = cell.querySelector('.marker');
-        marker.style.backgroundColor = '#aa4444';
+        marker.style.backgroundColor = sinkMarkerColour;
         marker.style.animation = 'pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
 
         // short delay for wave effect
@@ -233,6 +270,10 @@ aiBoardContainer.addEventListener('mouseleave', () => {
 
 // Event listener to handle player attacks on click
 aiCells.forEach(cell => {
+
+    // Do not add event listener to cells that already have a marker
+    if (cell.querySelector('.marker')) return;
+    
     cell.addEventListener('click', async () => {
         if (!playerTurn || !allowPlayerInput) return;
 
