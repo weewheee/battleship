@@ -114,12 +114,7 @@ function updateHoverEffect(row, col) {
         const hoverCol = isHorizontal ? col + i : col;
         const hoverCell = document.getElementById(`cell-${hoverRow}-${hoverCol}`);
 
-        if (isValidPlacement(row, col)) {
-            hoverCell.style.backgroundColor = hoverValidColour;
-        }
-        else if (hoverCell) {
-            hoverCell.style.backgroundColor = hoverInvalidColour;
-        }
+        hoverCell.style.backgroundColor = isValidPlacement(row, col) ? hoverValidColour : hoverInvalidColour;
     }
 }
 
