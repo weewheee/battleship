@@ -61,7 +61,10 @@ def play_set_ships():
     set_ships = False
 
     # Set ships on player and ai boards
-    ai_board.set_ships(*TESTING_SHIP_POSITIONS)
+    if TESTING:
+        ai_board.set_ships(*TESTING_SHIP_POSITIONS)
+    else:
+        ai_board.set_ships()
 
     player_ship_positions = []
     # Convert positions in list from list to tuple

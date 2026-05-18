@@ -151,31 +151,33 @@ gameContainer.addEventListener('mouseleave', () => {
 
 // Event listener for placing ships on click
 gameContainer.addEventListener('click', (event) => {
-    if (currentShip < 5) {
-        const target = event.target;
-        if (target.classList.contains('cell')) {
-            const [startRow, startCol] = target.value.split('').map(Number);
 
-            if (isValidPlacement(startRow, startCol)) {
+    // Validation checks
+    if (currentShip >= 5) return; 
 
-                const shipCells = [];
-                for (let i = 0; i < allShipLengths[currentShip]; i++) {
-                    const row = isHorizontal ? startRow : startRow + i;
-                    const col = isHorizontal ? startCol + i : startCol;
-                    shipCells.push([row, col]);
-                }
+    const target = event.target;
+    if (!target.classList.contains('cell')) return
 
-                placedShips.push({
-                    positions: shipCells,
-                    length: allShipLengths[currentShip],
-                    colour: shipColours[currentShip]
-                });
+    const [startRow, startCol] = target.value.split('').map(Number);
+    if (!isValidPlacement(startRow, startCol)) return
 
-                resetCellColours();
-                currentShip++;
-            }
-        }
+    // Place ship and store its positions, length, and colour in placedShips
+    const shipCells = [];
+    for (let i = 0; i < allShipLengths[currentShip]; i++) {
+        const row = isHorizontal ? startRow : startRow + i;
+        const col = isHorizontal ? startCol + i : startCol;
+        shipCells.push([row, col]);
     }
+
+    placedShips.push({
+        positions: shipCells,
+        length: allShipLengths[currentShip],
+        colour: shipColours[currentShip]
+    });
+
+    // Update cell colours to show placed ship
+    resetCellColours();
+    currentShip++;
 
     // At least 1 ship placed -> show back button
     if (currentShip > 0) {

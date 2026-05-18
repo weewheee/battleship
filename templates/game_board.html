@@ -145,12 +145,12 @@ function addHoverOverlay(row, col) {
         // add grey overlay to row and column of hovered cell
         const rowCell = document.getElementById(`ai-cell-${row}-${i}`);
         const colCell = document.getElementById(`ai-cell-${i}-${col}`);
-        if (rowCell) rowCell.style.boxShadow = 'inset 0 0 0 100px rgba(0, 0, 0, 0.25)';
-        if (colCell) colCell.style.boxShadow = 'inset 0 0 0 100px rgba(0, 0, 0, 0.25)';
+        if (rowCell) rowCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
+        if (colCell) colCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
 
         // add red overlay to hovered cell
         const hoveredCell = document.getElementById(`ai-cell-${row}-${col}`);
-        if (hoveredCell) hoveredCell.style.boxShadow = 'inset 0 0 0 100px rgba(255, 0, 0, 0.6)';
+        if (hoveredCell) hoveredCell.style.boxShadow = 'inset 0 0 0 100px #ff000080';
     }
 }
 
@@ -271,11 +271,12 @@ aiBoardContainer.addEventListener('mouseleave', () => {
 // Event listener to handle player attacks on click
 aiCells.forEach(cell => {
 
-    // Do not add event listener to cells that already have a marker
-    if (cell.querySelector('.marker')) return;
-    
     cell.addEventListener('click', async () => {
+        // Prevent player from clicking if it's not their turn or if input is disabled
         if (!playerTurn || !allowPlayerInput) return;
+
+        // Prevent clicking on cells that already have a marker
+        if (cell.querySelector('.marker')) return;
 
         removeHoverOverlay();
         togglePlayerInput();
@@ -316,7 +317,7 @@ aiCells.forEach(cell => {
         
         // Allow player to make another move if they hit a ship
         await togglePlayerInput();
-    }, { once: true }); // Use { once: true } to ensure the event listener is only triggered once per cell
+    }); 
 });
 
 </script>
