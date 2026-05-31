@@ -18,6 +18,7 @@ body {
 	cursor: default;
 	user-select: none;
 	overflow: hidden;
+	color: #2c2c2c;
 }
 
 main {
@@ -211,4 +212,85 @@ main {
 		scale: 1;
 		background-color: #aa4444;
 	}
+}
+
+.popup * {
+	z-index: 1;
+}
+
+.popup {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #00000040;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/*opacity: 0;
+	transition: opacityFadeIn 0.1s ease;*/
+}
+
+@keyframes opacityFadeIn {
+	to {
+		opacity: 1;
+	}
+}
+
+#game-over-message-container {
+	background-color: #8eb1d3;
+	padding: 40px;
+	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	box-shadow: 4px 4px 12px 2px #2c2c2c40;
+}
+
+#game-over-message {
+	font-size: 1.8em;
+	font-weight: 600;
+	margin: 0;
+}
+
+#game-over-submessage {
+	font-size: 1.3em;
+	font-weight: 600;
+	margin: 0;
+	color: #2c2c2c;
+}
+
+#game-over-stats {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 20px auto;
+	font-size: 1.2em;
+}
+
+#game-over-stats .row-header, #game-over-stats td {
+	padding: 4px 10px;
+	text-align: center;
+}
+
+.column-header {
+	text-align: left;
+	padding: 4px 30px 4px 10px;
+}
+
+#replay-button{
+	font-size: 1.4em;
+	font-weight: 500;
+	padding: 6px 16px 8px;
+	border: 0;
+	border-radius: 8px;
+	background-color: #dedede;
+	color: #2c2c2c;
+	text-decoration: none;
+}
+
+#replay-button:hover {
+	background-color: #cecece;
 }

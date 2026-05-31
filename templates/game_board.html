@@ -8,37 +8,63 @@
 </head>
 <body>
 <main>
+    <script>
+        // function to create a 10x10 grid of cells for the game board, used for both player and AI boards
+        function createGameBoard(containerId, cellClass) {
+            const container = document.getElementById(containerId);
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add(`${cellClass}-cell`);
+                    cell.id = `${cellClass}-cell-${row}-${col}`;
+                    cell.value = `${row}${col}`;
+                    container.appendChild(cell);
+                }
+            }
+        }
+    </script>
     <h2 id="turn-indicator"></h2>
     <div id="main-container">
         <div id="ai-board-container">
             <script>
                 // Dynamically create a 10x10 grid of cells for the AI's game board
-                const aiBoardContainer = document.getElementById('ai-board-container');
-                for (let row = 0; row < 10; row++) {
-                    for (let col = 0; col < 10; col++) {
-                        const cell = document.createElement('div');
-                        cell.classList.add('ai-cell');
-                        cell.id = `ai-cell-${row}-${col}`;
-                        cell.value = `${row}${col}`;
-                        aiBoardContainer.appendChild(cell);
-                    }
-                }
+                createGameBoard('ai-board-container', 'ai');
             </script>
         </div>
         <div id="player-board-container">
             <script>
                 // Dynamically create a 10x10 grid of cells for the player's game board
-                const playerBoardContainer = document.getElementById('player-board-container');
-                for (let row = 0; row < 10; row++) {
-                    for (let col = 0; col < 10; col++) {
-                        const cell = document.createElement('div');
-                        cell.classList.add('player-cell');
-                        cell.id = `player-cell-${row}-${col}`;
-                        cell.value = `${row}${col}`;
-                        playerBoardContainer.appendChild(cell);
-                    }
-                }
+                createGameBoard('player-board-container', 'player');
             </script>
+        </div>
+    </div>
+    <div class="popup">
+        <div id="game-over-message-container">
+            <h2 id="game-over-message">Game Over</h2>
+            <h3 id="game-over-submessage">You Win!</h3>
+            <table id="game-over-stats">
+                <tr>
+                    <th class="column-header"></th>
+                    <th class="row-header">You</th>
+                    <th class="row-header">AI</th>
+                </tr>
+                <tr>
+                    <th class="column-header">Misses</th>
+                    <td id="player-misses">0</td>
+                    <td id="ai-misses">0</td>
+                </tr>
+                <tr>
+                    <th class="column-header">Hits</th>
+                    <td id="player-hits">0</td>
+                    <td id="ai-hits">0</td>
+                </tr>
+                <tr>
+                    <th class="column-header">Total</th>
+                    <td id="player-total">0</td>
+                    <td id="ai-total">0</td>
+                </tr>
+            </table>
+            <a id="replay-button" href="/redirect">Play Again</a>
         </div>
     </div>
 </main>
@@ -145,12 +171,12 @@ function addHoverOverlay(row, col) {
         // add grey overlay to row and column of hovered cell
         const rowCell = document.getElementById(`ai-cell-${row}-${i}`);
         const colCell = document.getElementById(`ai-cell-${i}-${col}`);
-        if (rowCell) rowCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
-        if (colCell) colCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
+        rowCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
+        colCell.style.boxShadow = 'inset 0 0 0 100px #00000040';
 
         // add red overlay to hovered cell
         const hoveredCell = document.getElementById(`ai-cell-${row}-${col}`);
-        if (hoveredCell) hoveredCell.style.boxShadow = 'inset 0 0 0 100px #ff000080';
+        hoveredCell.style.boxShadow = 'inset 0 0 0 100px #ff000080';
     }
 }
 
@@ -159,7 +185,7 @@ function removeHoverOverlay() {
     for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 10; j++) {
             const cell = document.getElementById(`ai-cell-${i}-${j}`);
-            if (cell) cell.style.boxShadow = '';
+            cell.style.boxShadow = '';
         }
     }
 }
