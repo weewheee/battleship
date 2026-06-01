@@ -17,13 +17,16 @@ player_board = Board()
 set_ships: bool = True
 ship_positions: list = []
 
+winner = ''
+
 # function to reset all game variables to their initial state
 def reset():
-    global ai_board, player_board, set_ships, ship_positions
+    global ai_board, player_board, set_ships, ship_positions, winner
     ai_board = Board()
     player_board = Board()
     set_ships = True
     ship_positions = []
+    winner = None
 
 app = flask.Flask(__name__)
 
@@ -32,7 +35,7 @@ def index():
     return flask.render_template('index.html')
 
 # Redirect page to ensure that the game state is reset when the player clicks the "Play" button on the index page
-@app.route("/redirect")
+@app.route('/redirect')
 def redirect():
     reset()
     return flask.redirect('/play')
@@ -48,7 +51,8 @@ def play():
     context = {
         'ai_board': ai_board.grid.tolist(),
         'player_board': player_board.grid.tolist(),
-        'ship_placements': ship_positions
+        'ship_placements': ship_positions,
+        'winner': winner
     }
     return flask.render_template('game_board.html', **context)
 
@@ -83,17 +87,27 @@ def player_move():
 
     # Register the player's move on the AI's board and return whether it was a hit or miss
     hit, sink_positions = ai_board.receive_attack((row, col))
-    ai_board.moves += 1
 
     # Change tuples in sink_positions to lists for JSON serialization
     sink_positions = [list(pos) for pos in sink_positions]
     sink_positions.sort()
 
+    # Set winner variable if game is won by player
+    global winner
+    if all(ship.sunk for ship in ai_board.ships):
+        print('player win')
+        winner = 'player'
+
     # Return game state as JSON to html
     response  = {
         'hit': hit,
         'sinkPositions': sink_positions,
-        'win': all(ship.sunk for ship in ai_board.ships)
+        'winner': winner,
+        'winStats': {
+            'hitCount': ai_board.hit_count,
+            'missCount': ai_board.miss_count,
+            'totalAttacks': ai_board.hit_count + ai_board.miss_count
+        }
     }
     return flask.jsonify(response)
 
@@ -101,26 +115,34 @@ def player_move():
 def ai_move():
     # AI makes a move on the player's board and return whether it was a hit or miss
     next_move = ai.generate_next_move(player_board.grid, [ship.sunk for ship in player_board.ships])
-    print(next_move)
     hit, sink_positions = player_board.receive_attack(next_move)
-    player_board.moves += 1
 
     # Change tuples in sink_positions to lists for JSON serialization
     sink_positions = [list(pos) for pos in sink_positions]
     sink_positions.sort()
 
+    # Set winner variable if game is won by AI
+    global winner
+    if all(ship.sunk for ship in player_board.ships):
+        winner = 'ai'
+
     # Return game state as JSON to html
     response  = {
         'row': next_move[0],
-        'col': next_move[1],
+        'col': next_move[1],        
         'hit': hit,
         'sinkPositions': sink_positions,
-        'win': all(ship.sunk for ship in player_board.ships)
+        'winner': winner,
+        'winStats': {
+            'hitCount': player_board.hit_count,
+            'missCount': player_board.miss_count,
+            'totalAttacks': player_board.hit_count + player_board.miss_count
+        }
     }
     return flask.jsonify(response)
 
 def main():
     app.run(debug=True)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
