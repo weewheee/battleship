@@ -95,7 +95,6 @@ def player_move():
     # Set winner variable if game is won by player
     global winner
     if all(ship.sunk for ship in ai_board.ships):
-        print('player win')
         winner = 'player'
 
     # Return game state as JSON to html
