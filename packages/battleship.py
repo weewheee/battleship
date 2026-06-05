@@ -36,6 +36,11 @@ class Board:
         self.hit_count: int = 0
         self.miss_count: int = 0
 
+    def check_game_over(self) -> bool:
+        """Checks if the game is over, whereby all ships on the board have been sunk. 
+        Returns a Boolean indicating whether all ships are sunk."""
+        return all(ship.sunk for ship in self.ships)
+
     def set_ships(self, *positions: list[list[tuple[int, int]]]) -> None:
         """Sets ship positions on the board. 
         If no positions are provided, randomises ship placement."""

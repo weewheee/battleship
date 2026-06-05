@@ -189,11 +189,14 @@ main {
 	height: 36px;
 	border-radius: 50%;
 	margin: auto;
-	scale: 0;
+	scale: 1;
 	animation: appear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes appear {
+	from {
+		scale: 0;
+	}
 	to {
 		scale: 1;
 	}
@@ -202,13 +205,20 @@ main {
 @keyframes pulse {
 	0% {
 		scale: 1;
-		background-color: #ff4444;
 	}
 	50% {
 		scale: 1.2;
 	}
 	100% {
 		scale: 1;
+	}
+}
+
+@keyframes color-change {
+	from {
+		background-color: #ff4444;
+	}
+	to {
 		background-color: #aa4444;
 	}
 }

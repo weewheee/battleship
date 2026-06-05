@@ -223,10 +223,9 @@ startButton.addEventListener('click', async () => {
     });
 
     const result = await response.json();
-    if (result.success) {
-        // Reload current page to start game
-        window.location.reload();
-    }
+    
+    // Reload current page to start game
+    window.location.reload();
 });
 </script>
 </body>

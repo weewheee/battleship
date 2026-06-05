@@ -23,7 +23,7 @@
             }
         }
     </script>
-    <h2 id="turn-indicator" onclick=gameOver()></h2>
+    <h2 id="turn-indicator"></h2>
     <div id="main-container">
         <div id="ai-board-container">
             <script>
@@ -64,7 +64,7 @@
                     <td id="ai-total">0</td>
                 </tr>
             </table>
-            <div id="replay-button" onclick="window.open('/redirect')">Play Again</div>
+            <div id="replay-button" onclick="window.open('/redirect', '_self')">Play Again</div>
         </div>
     </div>
 </main>
@@ -74,9 +74,9 @@
 const aiBoard = {{ ai_board | tojson }};
 const playerBoard = {{ player_board | tojson }};
 const shipPlacements = {{ ship_placements | tojson }};
-let winner = {{ winner | tojson }};
+let winner = '{{ winner | string }}';
+let playerTurn = {{ player_turn | tojson }};
 
-let playerTurn = true;
 let allowPlayerInput = true; 
 
 const hitMarkerColour = '#ff4444';
@@ -89,17 +89,8 @@ const playerBoardContainer = document.getElementById('player-board-container');
 const aiCells = document.querySelectorAll('.ai-cell');
 const playerCells = document.querySelectorAll('.player-cell');
 
-const playerStats = {
-    hits: 0,
-    misses: 0,
-    total: 0
-}
-
-const aiStats = {
-    hits: 0,
-    misses: 0,
-    total: 0
-}
+const playerStats = {{ player_stats | tojson }};
+const aiStats = {{ ai_stats | tojson }};
 
 // Initial setup to reload markers on player and AI boards
 function reloadMarkers(player, board) {
@@ -215,11 +206,34 @@ async function markCell(board, row, col, hit) {
     marker.style.backgroundColor = hit ? hitMarkerColour : missMarkerColour;
     
     // add marker to cell
-    cell.textContent = '';
     cell.appendChild(marker);
 
     // wait for marker animation to finish
     await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+// Funciton to pulse all markers on a board for winning animation
+async function pulseWinningBoard(board) {
+
+    // Pulsing animation will start from top left and move to the bottom right
+    for (let i = 0; i < 20; i++) {
+        for (let j = 0; j <= i; j++) {
+
+            const cell = document.getElementById(`${board}-cell-${j}-${i-j}`);
+            if (!cell) continue; // Skip if cell does not exist (i.e. out of bounds)
+
+            const marker = cell.querySelector('.marker');
+            if (!marker) continue; // Skip if there is no marker in the cell
+
+            marker.style.animation = 'none'; // Reset animation
+            marker.offsetWidth; // Trigger reflow to restart animation
+            marker.style.animation = 'pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+            
+        }
+
+        // short delay before pulsing next set of markers for wave effect
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
 }
 
 // Function to toggle turns
@@ -246,7 +260,7 @@ async function updateSunkCells(board, sunkPositions) {
         // change colour of hit marker to dark red with pulse animation
         const marker = cell.querySelector('.marker');
         marker.style.backgroundColor = sinkMarkerColour;
-        marker.style.animation = 'pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+        marker.style.animation = 'pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, color-change 0.5s ease-out forwards';
 
         // short delay for wave effect
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -269,9 +283,9 @@ async function aiMakeMove() {
         const data = await response.json();
 
         // Update AI stats in game over popup
-        aiStats.hits = data.winStats.hitCount;
-        aiStats.misses = data.winStats.missCount;
-        aiStats.total = data.winStats.totalAttacks;
+        aiStats.hits = data.winStats['hits'];
+        aiStats.misses = data.winStats['misses'];
+        aiStats.total = data.winStats['total'];
 
         // Update player board based on AI move
         await markCell('player', data.row, data.col, data.hit);
@@ -287,8 +301,8 @@ async function aiMakeMove() {
         // check if game is over
         if (data.winner) {
             winner = data.winner;
-            gameOver();
-            break;
+            await gameOver();
+            return;
         }
 
         // Toggle turn back to player if AI missed
@@ -300,11 +314,28 @@ async function aiMakeMove() {
     }
 }
 
+// Initial call to AI move if it's AI's turn at the start of the game (e.g. player hits refresh mid-game)
+if (winner === '' && !playerTurn) {
+    togglePlayerInput();
+    aiMakeMove();
+}
+
 // Function to process game over screen
-function gameOver() {
+async function gameOver() {
 
     // return if winner is not set
     if (!winner) return;
+
+    // Pulse winning board
+    if (winner === 'player') {
+        await pulseWinningBoard('ai');
+    }
+    else {
+        await pulseWinningBoard('player');
+    }
+
+    // Short delay before showing game over popup
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Change submessage depending on who won
     const submessage = document.getElementById('game-over-submessage');
@@ -327,7 +358,7 @@ function gameOver() {
     // Fade in message container from bottom
     const gameOverMessageContainer = document.getElementById('game-over-message-container');
     gameOverMessageContainer.style.animation = 'fade-in-bottom 0.5s ease-out';
-    return
+    return;
 }
 
 // Initial game over call in case game is already over when page loads (e.g. player hits refresh mid-game)
@@ -352,7 +383,6 @@ aiCells.forEach(cell => {
     cell.addEventListener('click', async () => {
         // Prevent player from clicking if it's not their turn or if input is disabled
         if (!playerTurn || !allowPlayerInput) {
-            console.log(playerTurn, allowPlayerInput)
             return;
         }
 
@@ -375,9 +405,9 @@ aiCells.forEach(cell => {
         const data = await response.json();
 
         // Update player stats in game over popup
-        playerStats.hits = data.winStats.hitCount;
-        playerStats.misses = data.winStats.missCount;
-        playerStats.total = data.winStats.totalAttacks;
+        playerStats.hits = data.winStats['hits'];
+        playerStats.misses = data.winStats['misses'];
+        playerStats.total = data.winStats['total'];
 
         // Update AI board based on response
         await markCell('ai', row, col, data.hit);
@@ -386,19 +416,19 @@ aiCells.forEach(cell => {
         if (!data.hit) {
             await toggleTurn();
             await aiMakeMove();
-            return
+            return;
         }
         
         // Update sunk cells on AI board
         if (data.sinkPositions.length > 0) {
-            console.log(data.sinkPositions);
             await updateSunkCells('ai', data.sinkPositions);
         }
         
         // check if game is over
         if (data.winner) {
             winner = data.winner;
-            gameOver();
+            await gameOver();
+            return;
         }
         
         // Allow player to make another move if they hit a ship
