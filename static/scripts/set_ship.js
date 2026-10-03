@@ -1,0 +1,202 @@
+const allShipLengths = [5, 4, 3, 3, 2];
+const shipColours = ["#d8a7f6", "#ff9f50", "#a4ff90", "#ffff60", "#ff9dce"];
+const backgroundColour = "#f0f0f0";
+const hoverValidColour = "#30ff8e";
+const hoverInvalidColour = "#ff4444";
+
+let currentShip = 0;
+let isHorizontal = true;
+const placedShips = [];
+/*
+format: 
+placedShips = [
+    {
+        positions: [[row, col], ...], 
+        length: 5, 
+        colour: "#9372a0"
+    },
+    ...
+]
+*/
+
+const gameContainer = document.getElementById('game-container');
+const cells = gameContainer.querySelectorAll('.cell');
+const backButton = document.getElementById('back-button');
+const startButton = document.getElementById('start-button');
+
+// Immediately create the game board when the script is loaded
+function createGameBoard(containerId, cellClass) {
+    const container = document.getElementById(containerId);
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 10; col++) {
+            const cell = document.createElement('div');
+            cell.classList.add(cellClass);
+            cell.id = `${cellClass}-${row}-${col}`;
+            cell.value = `${row}${col}`;
+            container.appendChild(cell);
+        }
+    }
+}
+
+// Function to reset cell colours
+function resetCellColours() {
+    cells.forEach(cell => {
+        cell.style.backgroundColor = backgroundColour;
+    });
+
+    // change colour of cells with ships
+    placedShips.forEach(ship => {
+        ship.positions.forEach(pos => {
+            const shipCell = document.getElementById(`cell-${pos[0]}-${pos[1]}`);
+            shipCell.style.backgroundColor = ship.colour;
+        });
+    });
+}
+
+// Function to check if the ship placement is valid (within bounds and no overlap)
+function isValidPlacement(row, col) {
+    for (let i = 0; i < allShipLengths[currentShip]; i++) {
+        const checkRow = isHorizontal ? row : row + i;
+        const checkCol = isHorizontal ? col + i : col;
+
+        // Check if the ship goes out of bounds
+        if (checkRow >= 10 || checkCol >= 10) {
+            return false;
+        }
+
+        // Check for overlap with existing ships
+        for (const ship of placedShips) {
+            
+            if (ship.positions.some(pos => pos[0] === checkRow && pos[1] === checkCol)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Function to update colour of cells based on hover effect
+function updateHoverEffect(row, col) {
+
+    // Reset all cells to default color
+    resetCellColours();
+
+    // Set hover color for the ship placement based on the current orientation and length
+    for (let i = 0; i < allShipLengths[currentShip]; i++) {
+        const hoverRow = isHorizontal ? row : row + i;
+        const hoverCol = isHorizontal ? col + i : col;
+        const hoverCell = document.getElementById(`cell-${hoverRow}-${hoverCol}`);
+
+        hoverCell.style.backgroundColor = isValidPlacement(row, col) ? hoverValidColour : hoverInvalidColour;
+    }
+}
+
+// Event listener to change ship direction on right-click
+gameContainer.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    isHorizontal = !isHorizontal;
+
+    // Update hover effect for the current cell on right-click
+    const target = event.target;
+    if (target.classList.contains('cell')) {
+        const [row, col] = target.value.split('').map(Number);
+        updateHoverEffect(row, col);
+    }
+});
+
+// Event listeners for hover effect on cells
+cells.forEach(cell => cell.addEventListener(
+    'mouseover', () => {
+        const [row, col] = cell.value.split('').map(Number);
+        updateHoverEffect(row, col);
+    }
+)
+);
+
+gameContainer.addEventListener('mouseleave', () => {
+    resetCellColours();
+});
+
+// Event listener for placing ships on click
+gameContainer.addEventListener('click', (event) => {
+
+    // Validation checks
+    if (currentShip >= 5) return; 
+
+    const target = event.target;
+    if (!target.classList.contains('cell')) return
+
+    const [startRow, startCol] = target.value.split('').map(Number);
+    if (!isValidPlacement(startRow, startCol)) return
+
+    // Place ship and store its positions, length, and colour in placedShips
+    const shipCells = [];
+    for (let i = 0; i < allShipLengths[currentShip]; i++) {
+        const row = isHorizontal ? startRow : startRow + i;
+        const col = isHorizontal ? startCol + i : startCol;
+        shipCells.push([row, col]);
+    }
+
+    placedShips.push({
+        positions: shipCells,
+        length: allShipLengths[currentShip],
+        colour: shipColours[currentShip]
+    });
+
+    // Update cell colours to show placed ship
+    resetCellColours();
+    currentShip++;
+
+    // At least 1 ship placed -> show back button
+    if (currentShip > 0) {
+        backButton.style.display = 'block';
+    }
+
+    // All ships placed
+    if (currentShip >= 5) {
+        cells.forEach(cell => {
+            cell.style.cursor = 'default';
+        });
+        startButton.style.display = 'block';
+
+        // Update hidden value to send ship placements to server
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'ship_placements';
+        hiddenInput.value = JSON.stringify(placedShips);
+        gameContainer.appendChild(hiddenInput);
+    }
+});
+
+// Event listener for back button to reset ship placements
+backButton.addEventListener('click', () => {
+    currentShip--;
+    placedShips.pop();
+    resetCellColours();
+    startButton.style.display = 'none';
+    cells.forEach(cell => {
+        cell.style.cursor = 'pointer';
+    });
+
+    // Hide back button if no ships are placed
+    if (currentShip === 0) {
+        backButton.style.display = 'none';
+    }
+});
+
+// Event listener for start button to submit ship placements and start the game
+startButton.addEventListener('click', async () => {
+    // Send ship placements to server
+    const response = await fetch('/play/set-ships', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ship_placements: placedShips })
+    });
+
+    const result = await response.json();
+    
+    // Reload current page to start game
+    window.location.reload();
+});

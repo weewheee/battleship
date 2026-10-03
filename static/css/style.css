@@ -174,10 +174,14 @@ main {
 
 #ai-board-container {
 	transform-origin: top right;
+	opacity: 1;
+	transform: scale(1);
 }
 
 #player-board-container {
 	transform-origin: top left;
+	opacity: 0.6;
+	transform: scale(0.6);
 }
 
 .player-cell {
