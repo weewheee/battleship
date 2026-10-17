@@ -10,6 +10,9 @@ const playerBoardContainer = document.getElementById('player-board-container');
 const aiCells = document.querySelectorAll('.ai-cell');
 const playerCells = document.querySelectorAll('.player-cell');
 
+// Import external functions
+import { playSound } from './play_sound.js';
+
 // Initial setup to reload markers on player and AI boards
 function reloadMarkers(player, board) {
     for (let row = 0; row < 10; row++) {
@@ -126,8 +129,11 @@ async function markCell(board, row, col, hit) {
     // add marker to cell
     cell.appendChild(marker);
 
+    // play sound effect based on hit or miss
+    playSound(hit ? '/static/sounds/hit.mp3' : '/static/sounds/miss.mp3');
+
     // wait for marker animation to finish
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 500));
 }
 
 // Funciton to pulse all markers on a board for winning animation

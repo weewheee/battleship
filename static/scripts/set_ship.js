@@ -24,26 +24,15 @@ const cells = gameContainer.querySelectorAll('.cell');
 const backButton = document.getElementById('back-button');
 const startButton = document.getElementById('start-button');
 
-// Immediately create the game board when the script is loaded
-function createGameBoard(containerId, cellClass) {
-    const container = document.getElementById(containerId);
-    for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 10; col++) {
-            const cell = document.createElement('div');
-            cell.classList.add(cellClass);
-            cell.id = `${cellClass}-${row}-${col}`;
-            cell.value = `${row}${col}`;
-            container.appendChild(cell);
-        }
-    }
-}
+// Import external functions
+import { playSound } from './play_sound.js';
 
 // Function to reset cell colours
 function resetCellColours() {
     cells.forEach(cell => {
         cell.style.backgroundColor = backgroundColour;
     });
-
+    
     // change colour of cells with ships
     placedShips.forEach(ship => {
         ship.positions.forEach(pos => {
@@ -52,18 +41,18 @@ function resetCellColours() {
         });
     });
 }
-
+        
 // Function to check if the ship placement is valid (within bounds and no overlap)
 function isValidPlacement(row, col) {
     for (let i = 0; i < allShipLengths[currentShip]; i++) {
         const checkRow = isHorizontal ? row : row + i;
         const checkCol = isHorizontal ? col + i : col;
-
+        
         // Check if the ship goes out of bounds
         if (checkRow >= 10 || checkCol >= 10) {
             return false;
         }
-
+        
         // Check for overlap with existing ships
         for (const ship of placedShips) {
             
