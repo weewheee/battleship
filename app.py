@@ -2,7 +2,7 @@ from packages import *
 import flask
 
 # set ships in known positions for testing purposes
-TESTING = True
+TESTING = False
 TESTING_SHIP_POSITIONS = [
     [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)], 
     [(2, 0), (2, 1), (2, 2), (2, 3)], 
