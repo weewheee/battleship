@@ -91,6 +91,9 @@ gameContainer.addEventListener('contextmenu', (event) => {
         const [row, col] = target.value.split('').map(Number);
         updateHoverEffect(row, col);
     }
+
+    // Play sound effect for changing ship direction
+    playSound('/static/sounds/rotate_ship.mp3');
 });
 
 // Event listeners for hover effect on cells
@@ -155,6 +158,9 @@ gameContainer.addEventListener('click', (event) => {
         hiddenInput.value = JSON.stringify(placedShips);
         gameContainer.appendChild(hiddenInput);
     }
+
+    // Play sound effect for placing ship
+    playSound('/static/sounds/place_ship.mp3');
 });
 
 // Event listener for back button to reset ship placements

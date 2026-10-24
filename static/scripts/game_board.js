@@ -8,7 +8,6 @@ const turnIndicator = document.getElementById('turn-indicator');
 const aiBoardContainer = document.getElementById('ai-board-container');
 const playerBoardContainer = document.getElementById('player-board-container');
 const aiCells = document.querySelectorAll('.ai-cell');
-const playerCells = document.querySelectorAll('.player-cell');
 
 // Import external functions
 import { playSound } from './play_sound.js';
@@ -272,6 +271,9 @@ async function gameOver() {
     document.getElementById('ai-hits').textContent = aiStats.hits;
     document.getElementById('ai-misses').textContent = aiStats.misses;
     document.getElementById('ai-total').textContent = aiStats.total;
+
+    // play sound effect based on who won
+    playSound(winner === 'player' ? '/static/sounds/gameover_win.mp3' : '/static/sounds/gameover_lose.mp3');
 
     // Fade in popup background
     const popup = document.querySelector('.popup');
